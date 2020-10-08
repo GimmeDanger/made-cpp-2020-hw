@@ -181,10 +181,9 @@ std::istream& operator>>(std::istream &s, std::vector<T> &v) {
   size_t len;
   s >> len;
   v.resize(len);
-  for (size_t i = 0; i < len; i++)
+  for (size_t i = 0; i < len; i++) {
     s >> v[i];
-//  std::istream_iterator<T> stream_begin(s), stream_end;
-//  std::copy(stream_begin, stream_end, begin(v));
+  }
   return s;
 }
 
@@ -194,9 +193,9 @@ std::istream& operator>>(std::istream &s, std::vector<T> &v) {
  */
 template <typename T>
 std::ostream& operator<<(std::ostream &s, const std::vector<T> &v) {
-  for (size_t i = 0; i < v.size(); i++)
+  for (size_t i = 0; i < v.size(); i++) {
     s << v[i] << " ";
-  // std::copy(begin(v), end(v), std::ostream_iterator<T>(s, " "));
+  }
   s << std::endl;
   return s;
 }
