@@ -95,8 +95,16 @@ std::vector<T> operator%(const std::vector<T> &lhs, const std::vector<T> &rhs) {
  */
 template <typename T>
 std::optional<double> CollinearityMult(const std::vector<T> &lhs, const std::vector<T> &rhs) {
+
+  // required for in_nonzero(double) -> bool helper
+  static constexpr double nonzero_check_eps = 1.e-64;
+  // required for collinearity check algorithm
+  static constexpr double ratio_diff_check_eps = 1.e-7;
+
   assert(lhs.size() == rhs.size());
-  auto is_nonzero = [](double value) { return fabs(value) > 1.e-64; };
+  auto is_nonzero = [](double value) {
+    return fabs(value) > nonzero_check_eps;
+  };
 
   // corner case: zero vector is collinear with any other
   if (   lhs.empty() || !is_nonzero(lhs * lhs)
@@ -119,7 +127,7 @@ std::optional<double> CollinearityMult(const std::vector<T> &lhs, const std::vec
     else if (is_nonzero(lhs[i]) && is_nonzero(rhs[i])) {
       double diff = candidate_ratio - lhs[i] / rhs[i];
       // collinear vectors must have equal ratio factor
-      if (fabs(diff) > 1.e-7)
+      if (fabs(diff) > ratio_diff_check_eps)
         return {};
     }
   }
