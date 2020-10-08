@@ -55,7 +55,7 @@ template <typename T>
 std::vector<T> operator-(const std::vector<T> &v) {
   std::vector<T> out(v.size());
   std::transform(cbegin(v), cend(v), begin(out),
-                 [](auto &a) { return -a; });
+                 [](const T &a) { return -a; });
   return out;
 }
 
