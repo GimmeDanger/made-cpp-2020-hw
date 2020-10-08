@@ -107,8 +107,7 @@ std::optional<double> CollinearityMult(const std::vector<T> &lhs, const std::vec
   };
 
   // corner case: zero vector is collinear with any other
-  if (   lhs.empty() || !is_nonzero(lhs * lhs)
-      || rhs.empty() || !is_nonzero(rhs * rhs))
+  if (lhs.empty() || !is_nonzero(lhs * lhs) || rhs.empty() || !is_nonzero(rhs * rhs))
     return {0.};
 
   // otherwise, collinear vectors must have equal ratio factor > 0
