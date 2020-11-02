@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 
 #include "memory_chunk.h"
 #include "singly_linked_list.h"
@@ -28,25 +29,14 @@ class Allocator {
   static constexpr size_type MAX_CHUNK_SIZE_DEFAULT = 1'000'000;
 
   size_type max_chunk_size = MAX_CHUNK_SIZE_DEFAULT;
-  SinglyLinkedList<MemoryChunk> storage;
+  std::shared_ptr<SinglyLinkedList<MemoryChunk>> storage;
 
  public:
   // All constructors are default: Rule of 0 in action
   explicit Allocator(size_type _max_chunk_size = MAX_CHUNK_SIZE_DEFAULT)
-      : max_chunk_size(_max_chunk_size) {}
-
-  Allocator(const Allocator &other)
-      : max_chunk_size(other.max_chunk_size), storage(other.storage) {}
-
-  Allocator &operator=(const Allocator &other) {
-    if (this != &other) {
-      max_chunk_size = other.max_chunk_size;
-      storage = other.storage;
-    }
-    return *this;
-  }
-
-  ~Allocator() = default;
+      : max_chunk_size(_max_chunk_size)
+      , storage(std::make_shared<SinglyLinkedList<MemoryChunk>>())
+  {}
 
   template <class... Args>
   void construct(pointer p, Args &&... args) {
@@ -62,7 +52,7 @@ class Allocator {
   pointer allocate(size_type n) {
     size_type required_size = sizeof(value_type) * n;
     // try to find memory chunk with enough space
-    auto *node = storage.GetHead();
+    auto *node = storage->GetHead();
     while (node != nullptr) {
       auto &chunk = node->value;
       if (chunk.size + required_size < chunk.capacity) {
@@ -76,8 +66,8 @@ class Allocator {
     if (required_size > max_chunk_size) {
       throw std::bad_array_new_length();
     }
-    storage.PushFront(MemoryChunk());
-    auto &new_chunk = storage.GetHead()->value;
+    storage->PushFront(MemoryChunk());
+    auto &new_chunk = storage->GetHead()->value;
     new_chunk = MemoryChunk(max_chunk_size);
     auto ret = reinterpret_cast<pointer>(new_chunk.data);
     new_chunk.size += required_size;
@@ -90,6 +80,6 @@ class Allocator {
 
   // for tests
   [[nodiscard]] const SinglyLinkedList<MemoryChunk> &get_storage() const {
-    return storage;
+    return *storage;
   }
 };
