@@ -5,7 +5,7 @@
 struct MemoryChunk {
   size_t size = 0;
   size_t capacity = 0;
-  char *data = nullptr;
+  uint8_t *data = nullptr;
 
   // Methods
   void Clear() {
@@ -15,18 +15,25 @@ struct MemoryChunk {
     }
   }
 
+  uint8_t *Allocate(uint8_t *other = nullptr) {
+    return capacity > size_t(0) ? (other ? other : new uint8_t[capacity])
+                                : static_cast<uint8_t *>(nullptr);
+  }
+
   // Ctrs
   explicit MemoryChunk(size_t n = 0)
-      : size(0), capacity(n), data(capacity ? new char[capacity] : nullptr) {
+      : size(0),
+        capacity(n),
+        data(Allocate()) {
     if (data) {
-      std::fill(data, data + capacity, 0);
+      std::fill(data, data + capacity, uint8_t(0));
     }
   }
 
   MemoryChunk(const MemoryChunk &other)
       : size(other.size),
         capacity(other.capacity),
-        data(capacity ? new char[capacity] : nullptr) {
+        data(Allocate()) {
     std::copy(other.data, other.data + other.capacity, data);
   }
 
@@ -35,7 +42,7 @@ struct MemoryChunk {
       Clear();
       size = other.size;
       capacity = other.capacity;
-      data = capacity ? new char[capacity] : nullptr;
+      data = Allocate();
       std::copy(other.data, other.data + other.capacity, data);
     }
     return *this;
@@ -44,10 +51,10 @@ struct MemoryChunk {
   MemoryChunk(MemoryChunk &&other) noexcept
       : size(other.size),
         capacity(other.capacity),
-        data(capacity ? other.data : nullptr) {
+        data(Allocate(other.data)) {
     other.size = 0;
     other.capacity = 0;
-    other.data = nullptr;
+    other.data = static_cast<uint8_t *>(nullptr);
   }
 
   MemoryChunk &operator=(MemoryChunk &&other) noexcept {
@@ -55,10 +62,10 @@ struct MemoryChunk {
       Clear();
       size = other.size;
       capacity = other.capacity;
-      data = capacity ? other.data : nullptr;
+      data = Allocate(other.data);
       other.size = 0;
       other.capacity = 0;
-      other.data = nullptr;
+      other.data = static_cast<uint8_t *>(nullptr);
     }
     return *this;
   }
