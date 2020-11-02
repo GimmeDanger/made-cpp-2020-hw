@@ -25,14 +25,14 @@ class Allocator {
   // Member data
  private:
   // enough for ~125'000 doubles or ~250'000 integers
-  static constexpr size_t MAX_CHUNK_SIZE_DEFAULT = 1'000'000;
+  static constexpr size_type MAX_CHUNK_SIZE_DEFAULT = 1'000'000;
 
-  size_t max_chunk_size = MAX_CHUNK_SIZE_DEFAULT;
+  size_type max_chunk_size = MAX_CHUNK_SIZE_DEFAULT;
   SinglyLinkedList<MemoryChunk> storage;
 
  public:
   // All constructors are default: Rule of 0 in action
-  explicit Allocator(size_t _max_chunk_size = MAX_CHUNK_SIZE_DEFAULT)
+  explicit Allocator(size_type _max_chunk_size = MAX_CHUNK_SIZE_DEFAULT)
       : max_chunk_size(_max_chunk_size) {}
 
   Allocator(const Allocator &other)
@@ -60,7 +60,7 @@ class Allocator {
   }
 
   pointer allocate(size_type n) {
-    size_t required_size = sizeof(value_type) * n;
+    size_type required_size = sizeof(value_type) * n;
     // try to find memory chunk with enough space
     auto *node = storage.GetHead();
     while (node != nullptr) {
