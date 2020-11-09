@@ -29,7 +29,7 @@ class list {
     explicit Iterator() = default;
 
     Iterator& operator++() {
-      if (curr) {
+      if (nullptr != curr) {
         prev = curr;
         curr = curr->next;
       }
@@ -43,7 +43,7 @@ class list {
     }
 
     Iterator& operator--() {
-      if (prev) {
+      if (nullptr != prev) {
         curr = prev;
         prev = prev->prev;
       }
@@ -93,7 +93,7 @@ class list {
     ConstIterator(const Iterator& that) : prev(that.prev), curr(that.curr) {}
 
     ConstIterator& operator++() {
-      if (curr) {
+      if (nullptr != curr) {
         prev = curr;
         curr = curr->next;
       }
@@ -107,7 +107,7 @@ class list {
     }
 
     ConstIterator& operator--() {
-      if (prev) {
+      if (nullptr != prev) {
         curr = prev;
         prev = prev->prev;
       }
@@ -154,7 +154,7 @@ class list {
   using const_reference = const value_type&;
   using pointer = typename std::allocator_traits<allocator_type>::pointer;
   using const_pointer =
-      typename std::allocator_traits<Allocator>::const_pointer;
+  typename std::allocator_traits<Allocator>::const_pointer;
   using iterator = Iterator;
   using const_iterator = ConstIterator;
   using reverse_iterator = std::reverse_iterator<iterator>;
@@ -162,7 +162,7 @@ class list {
 
  private:
   using NodeAllocator =
-      typename std::allocator_traits<Allocator>::template rebind_alloc<Node>;
+  typename std::allocator_traits<Allocator>::template rebind_alloc<Node>;
 
  public:
   // construction methods
@@ -256,8 +256,7 @@ class list {
 
   iterator insert(const_iterator pos, T&& value) {
     auto* new_node = node_alloc.allocate(1);
-    node_alloc.construct(new_node, pos.get_prev(), pos.get_curr(),
-                         std::move(value));
+    node_alloc.construct(new_node, pos.get_prev(), pos.get_curr(), std::move(value));
     return insert(pos, new_node);
   }
 
@@ -272,19 +271,19 @@ class list {
   // Erases the specified elements from the container.
   iterator erase(const_iterator pos) {
     auto* del_node = pos.get_curr();
-    if (del_node->prev) {
+    if (nullptr != del_node->prev) {
       del_node->prev->next = del_node->next;
       if (del_node == m_tail) {
         m_tail = del_node->prev;
       }
     }
-    if (del_node->next) {
+    if (nullptr != del_node->next) {
       del_node->next->prev = del_node->prev;
       if (del_node == m_head) {
         m_head = del_node->next;
       }
     }
-    if (--m_size == 0) {
+    if (--m_size == size_type(0)) {
       m_head = m_tail = nullptr;
     }
     auto ret = Iterator(del_node->prev, del_node->next);
@@ -311,8 +310,7 @@ class list {
   template <class... Args>
   iterator emplace(const_iterator pos, Args&&... args) {
     auto* new_node = node_alloc.allocate(1);
-    node_alloc.construct(new_node, pos.get_prev(), pos.get_curr(),
-                         std::forward<Args>(args)...);
+    node_alloc.construct(new_node, pos.get_prev(), pos.get_curr(), std::forward<Args>(args)...);
     return insert(pos, new_node);
   }
 
@@ -366,10 +364,10 @@ class list {
       auto* new_node_right = other.m_tail;
       new_node_left->prev = pos.get_prev();
       new_node_right->next = pos.get_curr();
-      if (pos.get_prev()) {
+      if (nullptr != pos.get_prev()) {
         pos.get_prev()->next = new_node_left;
       }
-      if (pos.get_curr()) {
+      if (nullptr != pos.get_curr()) {
         pos.get_curr()->prev = new_node_right;
       }
       if (pos == cbegin()) {
@@ -411,8 +409,7 @@ class list {
   // removes consecutive duplicate elements
   void unique() {
     for (auto it = begin(); it != end();) {
-      auto range_end =
-          std::find_if(it, end(), [it](auto& val) { return *it != val; });
+      auto range_end = std::find_if(it, end(), [it](auto& val) { return *it != val; });
       if (std::next(it) != range_end) {
         it = erase(std::next(it), range_end);
       } else {
@@ -432,12 +429,12 @@ class list {
 
  private:
   void fix_structure() {
-    if (m_head) {
+    if (nullptr != m_head) {
       m_head->prev = nullptr;
       auto* prev = m_head;
       auto* curr = m_head;
       m_size = 1;
-      while (curr && curr->next) {
+      while (nullptr != curr && nullptr != curr->next) {
         curr = curr->next;
         curr->prev = prev;
         prev = curr;
@@ -452,7 +449,7 @@ class list {
 
   static Node* split_impl(Node* head) {
     Node* mid_prev = nullptr;
-    while (head && head->next) {
+    while (nullptr != head && nullptr != head->next) {
       if (mid_prev) {
         mid_prev = mid_prev->next;
       } else {
@@ -467,7 +464,7 @@ class list {
   }
 
   static Node* pop_front_node(Node** l) {
-    if (!(*l)) {
+    if (nullptr == *l) {
       return nullptr;
     }
     Node* front = (*l);
@@ -477,10 +474,10 @@ class list {
   }
 
   static Node* pop_next_node(Node** l1, Node** l2) {
-    if (*l1 == nullptr) {
+    if (nullptr == *l1) {
       return pop_front_node(l2);
     }
-    if (*l2 == nullptr) {
+    if (nullptr == *l2) {
       return pop_front_node(l1);
     }
     Node** l = (*l1)->value <= (*l2)->value ? l1 : l2;
@@ -490,7 +487,7 @@ class list {
   static Node* merge_impl(Node* l1, Node* l2) {
     Node* head = pop_next_node(&l1, &l2);
     Node* prev = head;
-    while (l1 || l2) {
+    while (nullptr != l1 || nullptr != l2) {
       Node* next = pop_next_node(&l1, &l2);
       prev->next = next;
       prev = prev->next;
@@ -501,7 +498,7 @@ class list {
   }
 
   static Node* sort_impl(Node* head) {
-    if (!head || !head->next) {
+    if (nullptr == head || nullptr == head->next) {
       return head;
     }
     auto* mi = split_impl(head);
@@ -514,10 +511,10 @@ class list {
     if (empty()) {
       m_head = m_tail = new_node;
     } else {
-      if (pos.get_prev()) {
+      if (nullptr != pos.get_prev()) {
         pos.get_prev()->next = new_node;
       }
-      if (pos.get_curr()) {
+      if (nullptr != pos.get_curr()) {
         pos.get_curr()->prev = new_node;
       }
       if (pos == cbegin()) {
